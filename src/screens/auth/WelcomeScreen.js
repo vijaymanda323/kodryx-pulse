@@ -1,110 +1,194 @@
 import React from 'react';
-import { StyleSheet, Text, View, Image, ImageBackground } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, ScrollView, Platform } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
+import { Ionicons } from '@expo/vector-icons';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, typography } from '../../theme/colors';
-import Button from '../../components/Card';
-import AppButton from '../../components/Button';
 
 const WelcomeScreen = ({ navigation }) => {
+  const roles = [
+    {
+      name: 'Founding Team',
+      desc: 'Company-wide oversight, all projects and team analytics',
+      icon: 'ribbon-outline',
+      bg: '#F7F0DF',
+      color: '#A07C30',
+    },
+    {
+      name: 'Employee',
+      desc: 'My tasks, work logs and productivity tracking',
+      icon: 'briefcase-outline',
+      bg: '#D1FAE5',
+      color: '#065F46',
+    },
+    {
+      name: 'Intern',
+      desc: 'Assigned projects, mentors and learning milestones',
+      icon: 'school-outline',
+      bg: '#FEF3C7',
+      color: '#92400E',
+    },
+    {
+      name: 'HR',
+      desc: 'People operations, hiring, compliance and policies',
+      icon: 'people-outline',
+      bg: '#FCE7F3',
+      color: '#9D174D',
+    },
+  ];
+
+  const handleRoleSelect = (roleName) => {
+    navigation.navigate('Login', { role: roleName });
+  };
+
   return (
-    <View style={styles.container}>
-      <StatusBar style="light" />
-      <View style={styles.content}>
-        <View style={styles.logoContainer}>
-          <View style={styles.logoCircle}>
-            <Text style={styles.logoText}>K</Text>
+    <SafeAreaView style={styles.container}>
+      <StatusBar style="dark" />
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        <View style={styles.header}>
+          <Text style={styles.eyebrow}>GLOBAL AI PARTNER</Text>
+          <View style={styles.logoRow}>
+            <View style={styles.logoIcon}>
+              <Ionicons name="flash" size={24} color={colors.brand} />
+            </View>
+            <Text style={styles.title}>KODRYX Pulse</Text>
           </View>
-          <Text style={styles.title}>Kodryx Pulse</Text>
-          <Text style={styles.subtitle}>Unified Enterprise AI & Workflow Platform</Text>
+          <Text style={styles.tagline}>Enterprise AI-powered workforce management platform</Text>
         </View>
 
-        <View style={styles.footer}>
-          <Text style={styles.tagline}>
-            Streamline tasks, projects, payroll, and team metrics in one powerful workspace.
-          </Text>
-          <AppButton
-            title="Get Started"
-            onPress={() => navigation.navigate('Login')}
-            variant="primary"
-            style={styles.button}
-          />
-          <Text style={styles.version}>Version 1.0.0 · Secure Workspace</Text>
+        <View style={styles.grid}>
+          {roles.map((item, idx) => (
+            <TouchableOpacity
+              key={idx}
+              style={styles.card}
+              onPress={() => handleRoleSelect(item.name)}
+              activeOpacity={0.8}
+            >
+              <View style={[styles.iconWrap, { backgroundColor: item.bg }]}>
+                <Ionicons name={item.icon} size={24} color={item.color} />
+              </View>
+              <View style={styles.cardBody}>
+                <Text style={styles.cardTitle}>{item.name}</Text>
+                <Text style={styles.cardDesc}>{item.desc}</Text>
+              </View>
+              <View style={styles.arrowWrap}>
+                <Ionicons name="chevron-forward" size={16} color={colors.onNavyMuted} />
+              </View>
+            </TouchableOpacity>
+          ))}
         </View>
-      </View>
-    </View>
+
+        <Text style={styles.footerText}>
+          © 2026 KODRYX Pulse Inc. · All rights reserved
+        </Text>
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: colors.navy,
   },
-  content: {
-    flex: 1,
-    width: '100%',
+  scrollContent: {
+    flexGrow: 1,
+    justifyContent: 'center',
     padding: 24,
-    justifyContent: 'space-between',
-    paddingTop: 100,
-    paddingBottom: 40,
-  },
-  logoContainer: {
+    paddingTop: 20,
+    paddingBottom: 20,
     alignItems: 'center',
-    marginTop: 40,
   },
-  logoCircle: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: colors.primary,
-    justifyContent: 'center',
+  header: {
     alignItems: 'center',
-    shadowColor: colors.primary,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.4,
-    shadowRadius: 20,
-    elevation: 8,
-    marginBottom: 20,
+    marginBottom: 40,
   },
-  logoText: {
-    color: colors.text,
-    fontSize: 40,
-    fontWeight: typography.weights.extraBold,
+  eyebrow: {
+    color: colors.brand,
+    fontSize: 12,
+    fontWeight: typography.weights.bold,
+    letterSpacing: 2,
+    marginBottom: 12,
   },
-  title: {
-    color: colors.text,
-    fontSize: typography.sizes.xxl,
-    fontWeight: typography.weights.extraBold,
-    letterSpacing: 0.5,
+  logoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: 8,
   },
-  subtitle: {
-    color: colors.textSecondary,
-    fontSize: typography.sizes.sm,
-    fontWeight: typography.weights.medium,
-    textAlign: 'center',
-  },
-  footer: {
-    width: '100%',
+  logoIcon: {
+    width: 38,
+    height: 38,
+    backgroundColor: colors.navyDeep,
+    borderRadius: 10,
+    justifyContent: 'center',
     alignItems: 'center',
+    marginRight: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(193, 154, 75, 0.35)',
+  },
+  title: {
+    color: '#FFFFFF',
+    fontSize: 28,
+    fontWeight: typography.weights.extraBold,
+    letterSpacing: -0.5,
   },
   tagline: {
-    color: colors.textMuted,
-    fontSize: typography.sizes.sm,
+    color: colors.onNavyMuted,
+    fontSize: 14,
     textAlign: 'center',
-    lineHeight: 20,
-    marginBottom: 32,
-    paddingHorizontal: 16,
+    marginTop: 8,
   },
-  button: {
+  grid: {
     width: '100%',
+    maxWidth: 500,
+    borderRadius: 16,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
   },
-  version: {
-    color: colors.textMuted,
-    fontSize: typography.sizes.xs,
-    marginTop: 20,
+  card: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 20,
+    backgroundColor: colors.navyDeep,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255, 255, 255, 0.05)',
+  },
+  iconWrap: {
+    width: 44,
+    height: 44,
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  cardBody: {
+    flex: 1,
+  },
+  cardTitle: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: typography.weights.bold,
+    marginBottom: 4,
+  },
+  cardDesc: {
+    color: colors.onNavyMuted,
+    fontSize: 12,
+    lineHeight: 16,
+  },
+  arrowWrap: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  footerText: {
+    color: colors.onNavyMuted,
+    fontSize: 11,
+    marginTop: 40,
+    textAlign: 'center',
   },
 });
 

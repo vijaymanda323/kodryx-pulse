@@ -10,6 +10,7 @@ import {
   Alert,
   FlatList
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, typography } from '../../theme/colors';
 import api from '../../services/api';
@@ -142,7 +143,7 @@ const TasksListScreen = () => {
   const canCreateTask = user?.role === 'Founding Team' || user?.role === 'HR';
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <View>
           <Text style={styles.title}>Task Manager</Text>
@@ -376,7 +377,7 @@ const TasksListScreen = () => {
         </View>
       </Modal>
 
-    </View>
+    </SafeAreaView>
   );
 };
 
@@ -391,7 +392,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingVertical: 12,
-    marginTop: 40,
+    marginTop: 0,
   },
   title: {
     color: colors.text,

@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Alert
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, typography } from '../../theme/colors';
 import useAuth from '../../hooks/useAuth';
@@ -63,20 +64,21 @@ const ProfileScreen = () => {
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
-      {/* Profile Header Card */}
-      <Card style={styles.profileHeaderCard} useGradient gradientColors={['#201515', '#160E0E']}>
-        <View style={styles.avatarRow}>
-          <View style={[styles.avatarCircle, { backgroundColor: user?.avatar?.bg || colors.primary }]}>
-            <Text style={styles.avatarText}>{user?.avatar?.initials || user?.name?.[0]}</Text>
+    <SafeAreaView style={styles.container}>
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        {/* Profile Header Card */}
+        <Card style={styles.profileHeaderCard} useGradient gradientColors={[colors.navy, colors.navyDeep]}>
+          <View style={styles.avatarRow}>
+            <View style={[styles.avatarCircle, { backgroundColor: user?.avatar?.bg || colors.primary }]}>
+              <Text style={[styles.avatarText, { color: user?.avatar?.color || '#FFFFFF' }]}>{user?.avatar?.initials || user?.name?.[0]}</Text>
+            </View>
+            <View style={styles.userInfo}>
+              <Text style={[styles.nameText, { color: '#FFFFFF' }]}>{user?.name}</Text>
+              <Text style={styles.roleText}>{user?.role} · {user?.designation || 'Staff'}</Text>
+              <Text style={styles.emailText}>{user?.email}</Text>
+            </View>
           </View>
-          <View style={styles.userInfo}>
-            <Text style={styles.nameText}>{user?.name}</Text>
-            <Text style={styles.roleText}>{user?.role} · {user?.designation || 'Staff'}</Text>
-            <Text style={styles.emailText}>{user?.email}</Text>
-          </View>
-        </View>
-      </Card>
+        </Card>
 
       {/* Account Info */}
       <Text style={styles.sectionTitle}>Corporate Profile Details</Text>
@@ -157,13 +159,16 @@ const ProfileScreen = () => {
         />
       </Card>
 
-      <TouchableOpacity style={styles.logoutBtn} onPress={logout}>
-        <Ionicons name="log-out" size={20} color={colors.text} style={{ marginRight: 8 }} />
-        <Text style={styles.logoutBtnText}>Log Out Account</Text>
-      </TouchableOpacity>
+        <Button
+          title="Log Out Account"
+          onPress={logout}
+          variant="danger"
+          style={{ marginTop: 10 }}
+        />
 
-      <View style={{ height: 40 }} />
-    </ScrollView>
+        <View style={{ height: 40 }} />
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 
@@ -176,7 +181,7 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   profileHeaderCard: {
-    marginTop: 40,
+    marginTop: 10,
     marginBottom: 20,
   },
   avatarRow: {

@@ -17,13 +17,13 @@ const Button = ({
   const getGradientColors = () => {
     switch (variant) {
       case 'primary':
-        return [colors.primary, colors.secondary];
+        return [colors.brand, colors.brandDark];
       case 'secondary':
         return [colors.cardBgSecondary, colors.border];
       case 'danger':
         return ['#EA4335', '#C5221F'];
       default:
-        return [colors.primary, colors.secondary];
+        return [colors.brand, colors.brandDark];
     }
   };
 

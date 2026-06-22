@@ -7,15 +7,19 @@ import {
   TouchableOpacity,
   RefreshControl,
   ActivityIndicator,
-  FlatList,
-  Alert
+  Platform,
+  Alert,
+  Dimensions
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, typography } from '../../theme/colors';
 import useAuth from '../../hooks/useAuth';
 import api from '../../services/api';
 import Card from '../../components/Card';
 import Badge from '../../components/Badge';
+
+const { width } = Dimensions.get('window');
 
 const EmployeeOverviewScreen = ({ navigation }) => {
   const { user, logout } = useAuth();
@@ -76,10 +80,10 @@ const EmployeeOverviewScreen = ({ navigation }) => {
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={colors.primary} />
+      <SafeAreaView style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={colors.brand} />
         <Text style={styles.loadingText}>Syncing Workspace...</Text>
-      </View>
+      </SafeAreaView>
     );
   }
 
@@ -91,39 +95,64 @@ const EmployeeOverviewScreen = ({ navigation }) => {
   const activeTasks = tasks.filter(t => t.status === 'In Progress' || t.status === 'Not Started').slice(0, 4);
 
   return (
-    <ScrollView
-      style={styles.container}
-      refreshControl={
-        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />
-      }
-    >
+    <SafeAreaView style={styles.container}>
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.brand} />
+        }
+      >
       {/* Header */}
       <View style={styles.header}>
         <View>
-          <Text style={styles.greeting}>{getGreeting()}, {user?.name?.split(' ')[0]} 👋</Text>
+          <Text style={styles.greeting}>{getGreeting()}, {user?.name?.split(' ')[0] || 'Employee'} 👋</Text>
           <Text style={styles.date}>
             {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
             {user?.designation ? ` · ${user.designation}` : ''}
           </Text>
         </View>
         <TouchableOpacity style={styles.logoutBtn} onPress={logout}>
-          <Ionicons name="log-out-outline" size={24} color={colors.primary} />
+          <Ionicons name="log-out-outline" size={22} color={colors.brandDark} />
         </TouchableOpacity>
       </View>
+
+      {/* Warning Banner */}
+      {!todayLog && (
+        <Card style={styles.warningBanner}>
+          <View style={styles.warningRow}>
+            <View style={styles.warningIconCircle}>
+              <Ionicons name="time" size={20} color={colors.brand} />
+            </View>
+            <View style={styles.warningTextContainer}>
+              <Text style={styles.warningTitle}>Daily Log Pending</Text>
+              <Text style={styles.warningDesc}>Submit status updates before the standup.</Text>
+            </View>
+            <TouchableOpacity
+              style={styles.warningAction}
+              onPress={() => navigation.navigate('Daily Log')}
+            >
+              <Text style={styles.warningActionText}>Log Now</Text>
+            </TouchableOpacity>
+          </View>
+        </Card>
+      )}
 
       {/* Stats Summary Grid */}
       <View style={styles.statsGrid}>
         <TouchableOpacity style={styles.statCardWrapper} onPress={() => navigation.navigate('Tasks')}>
           <Card style={styles.statCard}>
-            <Ionicons name="list-circle-outline" size={24} color={colors.primary} style={styles.statIcon} />
+            <View style={[styles.statAccent, { backgroundColor: colors.brand }]} />
+            <Ionicons name="list-circle-outline" size={20} color={colors.brand} style={styles.statIcon} />
             <Text style={styles.statVal}>{openTasks.length}</Text>
             <Text style={styles.statLabel}>Open Tasks</Text>
           </Card>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.statCardWrapper} onPress={() => navigation.navigate('DailyStatus')}>
+        <TouchableOpacity style={styles.statCardWrapper} onPress={() => navigation.navigate('Daily Log')}>
           <Card style={styles.statCard}>
-            <Ionicons name="checkbox-outline" size={24} color={todayLog ? colors.success : colors.warning} style={styles.statIcon} />
+            <View style={[styles.statAccent, { backgroundColor: todayLog ? colors.success : colors.warning }]} />
+            <Ionicons name="checkbox-outline" size={20} color={todayLog ? colors.success : colors.warning} style={styles.statIcon} />
             <Text style={[styles.statVal, { color: todayLog ? colors.success : colors.warning }]}>
               {todayLog ? todayDone : '—'}
             </Text>
@@ -133,7 +162,8 @@ const EmployeeOverviewScreen = ({ navigation }) => {
 
         <TouchableOpacity style={styles.statCardWrapper} onPress={() => navigation.navigate('Leaves')}>
           <Card style={styles.statCard}>
-            <Ionicons name="airplane-outline" size={24} color={colors.success} style={styles.statIcon} />
+            <View style={[styles.statAccent, { backgroundColor: colors.success }]} />
+            <Ionicons name="airplane-outline" size={20} color={colors.success} style={styles.statIcon} />
             <Text style={[styles.statVal, { color: colors.success }]}>
               {balance?.available ?? '—'}
             </Text>
@@ -141,54 +171,38 @@ const EmployeeOverviewScreen = ({ navigation }) => {
           </Card>
         </TouchableOpacity>
 
-        <Card style={[styles.statCard, { flex: 1, minWidth: '45%' }]}>
-          <Ionicons name="alert-circle-outline" size={24} color={overdueTasks.length > 0 ? colors.danger : colors.success} style={styles.statIcon} />
-          <Text style={[styles.statVal, { color: overdueTasks.length > 0 ? colors.danger : colors.text }]}>
-            {overdueTasks.length + blockedTasks.length}
-          </Text>
-          <Text style={styles.statLabel}>Attention</Text>
-        </Card>
+        <View style={styles.statCardWrapper}>
+          <Card style={styles.statCard}>
+            <View style={[styles.statAccent, { backgroundColor: overdueTasks.length > 0 ? colors.danger : colors.success }]} />
+            <Ionicons name="alert-circle-outline" size={20} color={overdueTasks.length > 0 ? colors.danger : colors.success} style={styles.statIcon} />
+            <Text style={[styles.statVal, { color: overdueTasks.length > 0 ? colors.danger : colors.text }]}>
+              {overdueTasks.length + blockedTasks.length}
+            </Text>
+            <Text style={styles.statLabel}>Attention</Text>
+          </Card>
+        </View>
       </View>
-
-      {/* Warning banner */}
-      {!todayLog && (
-        <Card style={styles.warningBanner} useGradient gradientColors={['#2A1B1B', '#1B1414']}>
-          <View style={styles.warningRow}>
-            <Ionicons name="time-outline" size={24} color={colors.primary} />
-            <View style={styles.warningTextContainer}>
-              <Text style={styles.warningTitle}>Pending Daily Status</Text>
-              <Text style={styles.warningDesc}>Submit your updates before the 11 AM standup.</Text>
-            </View>
-            <TouchableOpacity
-              style={styles.warningAction}
-              onPress={() => navigation.navigate('DailyStatus')}
-            >
-              <Text style={styles.warningActionText}>Log Now</Text>
-            </TouchableOpacity>
-          </View>
-        </Card>
-      )}
 
       {/* Quick Actions */}
       <Text style={styles.sectionTitle}>Quick Actions</Text>
       <View style={styles.actionsRow}>
-        <TouchableOpacity style={styles.actionBtn} onPress={() => navigation.navigate('DailyStatus')}>
-          <View style={[styles.actionIconWrap, { backgroundColor: colors.primary + '15' }]}>
-            <Ionicons name="create-outline" size={24} color={colors.primary} />
+        <TouchableOpacity style={styles.actionBtn} onPress={() => navigation.navigate('Daily Log')}>
+          <View style={[styles.actionIconWrap, { backgroundColor: colors.brandLight }]}>
+            <Ionicons name="create-outline" size={20} color={colors.brandDark} />
           </View>
           <Text style={styles.actionText}>Log Status</Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.actionBtn} onPress={() => navigation.navigate('Leaves')}>
-          <View style={[styles.actionIconWrap, { backgroundColor: colors.success + '15' }]}>
-            <Ionicons name="calendar-outline" size={24} color={colors.success} />
+          <View style={[styles.actionIconWrap, { backgroundColor: colors.successBg }]}>
+            <Ionicons name="calendar-outline" size={20} color={colors.successText} />
           </View>
           <Text style={styles.actionText}>Apply Leave</Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.actionBtn} onPress={() => navigation.navigate('Tasks')}>
-          <View style={[styles.actionIconWrap, { backgroundColor: colors.info + '15' }]}>
-            <Ionicons name="briefcase-outline" size={24} color={colors.info} />
+          <View style={[styles.actionIconWrap, { backgroundColor: colors.infoBg }]}>
+            <Ionicons name="briefcase-outline" size={20} color={colors.infoText} />
           </View>
           <Text style={styles.actionText}>My Tasks</Text>
         </TouchableOpacity>
@@ -198,7 +212,9 @@ const EmployeeOverviewScreen = ({ navigation }) => {
       <Card style={styles.sectionCard}>
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionHeaderTitle}>My Active Tasks</Text>
-          <Badge variant="info">{openTasks.length}</Badge>
+          <View style={styles.taskCountBadge}>
+            <Text style={styles.taskCountText}>{openTasks.length}</Text>
+          </View>
         </View>
         {activeTasks.length === 0 ? (
           <View style={styles.emptyContainer}>
@@ -213,9 +229,11 @@ const EmployeeOverviewScreen = ({ navigation }) => {
                 {t.project?.name && <Text style={styles.listItemSubtitle}>{t.project.name}</Text>}
               </View>
               <View style={styles.listBadgeContainer}>
-                <Badge variant={t.status === 'Completed' ? 'success' : t.status === 'Blocked' ? 'danger' : 'info'}>
-                  {t.status}
-                </Badge>
+                <View style={[styles.miniBadge, { backgroundColor: t.status === 'Completed' ? colors.successBg : t.status === 'Blocked' ? colors.dangerBg : colors.infoBg }]}>
+                  <Text style={[styles.miniBadgeText, { color: t.status === 'Completed' ? colors.successText : t.status === 'Blocked' ? colors.dangerText : colors.infoText }]}>
+                    {t.status}
+                  </Text>
+                </View>
                 {t.dueDate && (
                   <Text style={[styles.listDueDate, t.status === 'Overdue' && { color: colors.danger }]}>
                     Due {t.dueDate}
@@ -228,42 +246,47 @@ const EmployeeOverviewScreen = ({ navigation }) => {
       </Card>
 
       {/* Team updates */}
-      <Text style={styles.sectionTitle}>My Team Updates</Text>
+      <Text style={styles.sectionTitle}>Team Status</Text>
       {teamMembers.length === 0 ? (
         <Card style={styles.emptyCard}>
-          <Text style={styles.emptyCardText}>No team logs recorded today.</Text>
+          <Text style={styles.emptyCardText}>No team updates recorded today.</Text>
         </Card>
       ) : (
         teamMembers.map((member) => {
-          const log = teamLogs.find(l => l.employee?._id === member._id);
+          const log = teamLogs.find(l => l.employee?._id === member._id || l.employee === member._id);
           return (
             <Card key={member._id} style={styles.teamCard}>
               <View style={styles.teamHeader}>
                 <View style={styles.avatarRow}>
-                  <View style={[styles.avatarCircle, { backgroundColor: member.avatar?.bg || colors.border }]}>
-                    <Text style={styles.avatarText}>{member.avatar?.initials || member.name[0]}</Text>
+                  <View style={[styles.avatarCircle, { backgroundColor: member.avatar?.bg || colors.brandLight }]}>
+                    <Text style={[styles.avatarText, { color: member.avatar?.color || colors.brandDark }]}>
+                      {member.avatar?.initials || member.name[0]}
+                    </Text>
                   </View>
                   <View>
                     <Text style={styles.teamMemberName}>{member.name}</Text>
-                    <Text style={styles.teamMemberRole}>{member.role || 'Team Member'}</Text>
+                    <Text style={styles.teamMemberRole}>{member.designation || 'Team Member'}</Text>
                   </View>
                 </View>
-                <Badge variant={member.status === 'on-leave' ? 'danger' : 'success'}>
-                  {member.status === 'on-leave' ? 'On Leave' : 'Working'}
-                </Badge>
+                <View style={[styles.miniBadge, { backgroundColor: member.status === 'on-leave' ? colors.dangerBg : colors.successBg }]}>
+                  <Text style={[styles.miniBadgeText, { color: member.status === 'on-leave' ? colors.dangerText : colors.successText }]}>
+                    {member.status === 'on-leave' ? 'On Leave' : 'Available'}
+                  </Text>
+                </View>
               </View>
               {log ? (
                 <View style={styles.teamLogContainer}>
                   <Text style={styles.teamLogTitle}>Today's Updates:</Text>
-                  {log.tasks.slice(0, 3).map((t, idx) => (
+                  {log.tasks?.slice(0, 2).map((t, idx) => (
                     <View key={idx} style={styles.teamTaskRow}>
                       <Text style={styles.teamTaskText} numberOfLines={1}>• {t.task}</Text>
-                      <Badge variant={t.status === 'Completed' ? 'success' : 'info'}>{t.status}</Badge>
+                      <View style={[styles.miniBadge, { backgroundColor: t.status === 'Completed' ? colors.successBg : colors.infoBg }]}>
+                        <Text style={[styles.miniBadgeText, { color: t.status === 'Completed' ? colors.successText : colors.infoText }]}>
+                          {t.status}
+                        </Text>
+                      </View>
                     </View>
                   ))}
-                  {log.tasks.length > 3 && (
-                    <Text style={styles.teamLogMore}>+{log.tasks.length - 3} more updates</Text>
-                  )}
                 </View>
               ) : (
                 <Text style={styles.teamLogEmpty}>No status updates submitted today.</Text>
@@ -273,7 +296,8 @@ const EmployeeOverviewScreen = ({ navigation }) => {
         })
       )}
       <View style={{ height: 40 }} />
-    </ScrollView>
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 
@@ -281,7 +305,10 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
+  },
+  scrollContent: {
     paddingHorizontal: 16,
+    paddingBottom: 40,
   },
   loadingContainer: {
     flex: 1,
@@ -298,91 +325,115 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 20,
-    marginTop: Platform.OS === 'ios' ? 40 : 20,
+    paddingVertical: 16,
+    marginTop: 0,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+    marginBottom: 16,
   },
   greeting: {
     color: colors.text,
-    fontSize: typography.sizes.xl,
-    fontWeight: typography.weights.extraBold,
+    fontSize: 18,
+    fontWeight: typography.weights.bold,
   },
   date: {
     color: colors.textSecondary,
-    fontSize: typography.sizes.xs,
+    fontSize: 12,
     marginTop: 4,
   },
   logoutBtn: {
-    padding: 10,
-    backgroundColor: colors.cardBg,
-    borderRadius: 12,
+    padding: 8,
+    backgroundColor: colors.surface,
+    borderRadius: 10,
     borderWidth: 1,
     borderColor: colors.border,
   },
-  statsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    marginBottom: 16,
-  },
-  statCardWrapper: {
-    width: '48%',
-  },
-  statCard: {
-    paddingVertical: 14,
-    paddingHorizontal: 12,
-    alignItems: 'flex-start',
-    marginBottom: 12,
-  },
-  statIcon: {
-    marginBottom: 8,
-  },
-  statVal: {
-    color: colors.text,
-    fontSize: typography.sizes.xl,
-    fontWeight: typography.weights.bold,
-  },
-  statLabel: {
-    color: colors.textSecondary,
-    fontSize: typography.sizes.xs,
-    marginTop: 4,
-  },
   warningBanner: {
-    borderWidth: 1,
-    borderColor: colors.primary + '50',
+    borderWidth: 1.5,
+    borderColor: 'rgba(193, 154, 75, 0.4)',
+    backgroundColor: colors.navy,
+    borderRadius: 12,
+    padding: 12,
     marginBottom: 20,
   },
   warningRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 12,
+  },
+  warningIconCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   warningTextContainer: {
     flex: 1,
-    marginLeft: 12,
   },
   warningTitle: {
-    color: colors.text,
-    fontSize: typography.sizes.sm,
+    color: '#FFFFFF',
+    fontSize: 13,
     fontWeight: typography.weights.bold,
   },
   warningDesc: {
-    color: colors.textSecondary,
-    fontSize: typography.sizes.xs,
+    color: colors.onNavyMuted,
+    fontSize: 11,
     marginTop: 2,
   },
   warningAction: {
-    backgroundColor: colors.primary,
+    backgroundColor: colors.brand,
     paddingHorizontal: 12,
-    paddingVertical: 8,
+    paddingVertical: 6,
     borderRadius: 8,
   },
   warningActionText: {
-    color: colors.text,
-    fontSize: typography.sizes.xs,
+    color: '#FFFFFF',
+    fontSize: 11,
     fontWeight: typography.weights.bold,
+  },
+  statsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+    marginBottom: 20,
+  },
+  statCardWrapper: {
+    width: (width - 42) / 2,
+  },
+  statCard: {
+    padding: 12,
+    backgroundColor: colors.surface,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.border,
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  statAccent: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    bottom: 0,
+    width: 4,
+  },
+  statIcon: {
+    marginBottom: 6,
+  },
+  statVal: {
+    color: colors.text,
+    fontSize: 22,
+    fontWeight: typography.weights.bold,
+  },
+  statLabel: {
+    color: colors.textSecondary,
+    fontSize: 11,
+    marginTop: 2,
   },
   sectionTitle: {
     color: colors.text,
-    fontSize: typography.sizes.lg,
+    fontSize: 14,
     fontWeight: typography.weights.bold,
     marginBottom: 12,
     marginTop: 10,
@@ -391,45 +442,62 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: 20,
+    gap: 10,
   },
   actionBtn: {
-    width: '30%',
+    flex: 1,
     alignItems: 'center',
-    backgroundColor: colors.cardBg,
+    backgroundColor: colors.surface,
     paddingVertical: 12,
-    borderRadius: 14,
+    borderRadius: 12,
     borderWidth: 1,
     borderColor: colors.border,
   },
   actionIconWrap: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 38,
+    height: 38,
+    borderRadius: 19,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 8,
   },
   actionText: {
     color: colors.textSecondary,
-    fontSize: typography.sizes.xs,
+    fontSize: 11,
     fontWeight: typography.weights.medium,
   },
   sectionCard: {
     marginBottom: 20,
+    padding: 16,
+    backgroundColor: colors.surface,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingBottom: 12,
+    paddingBottom: 10,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
     marginBottom: 12,
   },
   sectionHeaderTitle: {
     color: colors.text,
-    fontSize: typography.sizes.md,
+    fontSize: 13,
     fontWeight: typography.weights.bold,
+  },
+  taskCountBadge: {
+    backgroundColor: colors.brandLight,
+    paddingVertical: 2,
+    paddingHorizontal: 8,
+    borderRadius: 10,
+  },
+  taskCountText: {
+    fontSize: 10,
+    fontWeight: typography.weights.bold,
+    color: colors.brandDark,
   },
   emptyContainer: {
     alignItems: 'center',
@@ -437,14 +505,15 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     color: colors.textMuted,
-    fontSize: typography.sizes.sm,
-    marginTop: 8,
+    fontSize: 12,
+    marginTop: 6,
+    textAlign: 'center',
   },
   listItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 12,
+    paddingVertical: 10,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
   },
@@ -454,92 +523,112 @@ const styles = StyleSheet.create({
   },
   listItemTitle: {
     color: colors.text,
-    fontSize: typography.sizes.sm,
+    fontSize: 13,
     fontWeight: typography.weights.semibold,
   },
   listItemSubtitle: {
     color: colors.textSecondary,
-    fontSize: typography.sizes.xs,
-    marginTop: 4,
+    fontSize: 11,
+    marginTop: 2,
   },
   listBadgeContainer: {
     alignItems: 'flex-end',
   },
+  miniBadge: {
+    paddingVertical: 2,
+    paddingHorizontal: 6,
+    borderRadius: 8,
+  },
+  miniBadgeText: {
+    fontSize: 9,
+    fontWeight: typography.weights.bold,
+  },
   listDueDate: {
     color: colors.textMuted,
-    fontSize: typography.sizes.xs,
+    fontSize: 11,
     marginTop: 4,
   },
   teamCard: {
     marginBottom: 12,
+    padding: 12,
+    backgroundColor: colors.surface,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
   teamHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 12,
+    marginBottom: 10,
   },
   avatarRow: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   avatarCircle: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 10,
   },
   avatarText: {
-    color: colors.text,
     fontWeight: typography.weights.bold,
-    fontSize: typography.sizes.sm,
+    fontSize: 12,
   },
   teamMemberName: {
     color: colors.text,
-    fontSize: typography.sizes.sm,
+    fontSize: 12,
     fontWeight: typography.weights.semibold,
   },
   teamMemberRole: {
     color: colors.textMuted,
-    fontSize: typography.sizes.xs,
+    fontSize: 10,
   },
   teamLogContainer: {
-    backgroundColor: colors.cardBgSecondary,
-    borderRadius: 10,
-    padding: 10,
+    backgroundColor: colors.backgroundSecondary,
+    borderRadius: 8,
+    padding: 8,
     borderWidth: 1,
     borderColor: colors.border,
   },
   teamLogTitle: {
     color: colors.textSecondary,
-    fontSize: typography.sizes.xs,
+    fontSize: 10,
     fontWeight: typography.weights.bold,
-    marginBottom: 6,
+    marginBottom: 4,
   },
   teamTaskRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 4,
+    paddingVertical: 3,
   },
   teamTaskText: {
     color: colors.text,
-    fontSize: typography.sizes.xs,
+    fontSize: 11,
     flex: 1,
     marginRight: 10,
   },
-  teamLogMore: {
-    color: colors.textMuted,
-    fontSize: typography.sizes.xs,
-    fontStyle: 'italic',
-    marginTop: 6,
-  },
   teamLogEmpty: {
     color: colors.textMuted,
-    fontSize: typography.sizes.xs,
+    fontSize: 11,
     fontStyle: 'italic',
+  },
+  emptyCard: {
+    alignItems: 'center',
+    paddingVertical: 20,
+    marginBottom: 16,
+    backgroundColor: colors.surface,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  emptyCardText: {
+    color: colors.textMuted,
+    fontSize: 12,
   },
 });
 

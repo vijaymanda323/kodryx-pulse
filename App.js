@@ -1,5 +1,5 @@
 import React from 'react';
-import { StatusBar } from 'react-native';
+import { StatusBar, Platform, SafeAreaView } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -7,6 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors } from './src/theme/colors';
 
 // Context
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AuthProvider } from './src/context/AuthContext';
 import useAuth from './src/hooks/useAuth';
 
@@ -23,6 +24,12 @@ import MyPayslipsScreen from './src/screens/employee/MyPayslipsScreen';
 // Shared Screens
 import TasksListScreen from './src/screens/shared/TasksListScreen';
 import ProfileScreen from './src/screens/shared/ProfileScreen';
+import ProjectsScreen from './src/screens/shared/ProjectsScreen';
+import ProjectDetailScreen from './src/screens/shared/ProjectDetailScreen';
+import TeamScreen from './src/screens/shared/TeamScreen';
+import EmployeeWorkflowScreen from './src/screens/shared/EmployeeWorkflowScreen';
+import AIInsightsScreen from './src/screens/shared/AIInsightsScreen';
+import EscalationsScreen from './src/screens/shared/EscalationsScreen';
 
 // Admin / HR Screens
 import ManagerOverviewScreen from './src/screens/hr/ManagerOverviewScreen';
@@ -36,6 +43,12 @@ const EmployeeHomeStack = () => (
   <Stack.Navigator screenOptions={{ headerShown: false }}>
     <Stack.Screen name="Overview" component={EmployeeOverviewScreen} />
     <Stack.Screen name="Tasks" component={TasksListScreen} />
+    <Stack.Screen name="Projects" component={ProjectsScreen} />
+    <Stack.Screen name="ProjectDetail" component={ProjectDetailScreen} />
+    <Stack.Screen name="Team" component={TeamScreen} />
+    <Stack.Screen name="EmployeeWorkflow" component={EmployeeWorkflowScreen} />
+    <Stack.Screen name="AIInsights" component={AIInsightsScreen} />
+    <Stack.Screen name="Escalations" component={EscalationsScreen} />
   </Stack.Navigator>
 );
 
@@ -45,6 +58,12 @@ const AdminHomeStack = () => (
     <Stack.Screen name="Overview" component={ManagerOverviewScreen} />
     <Stack.Screen name="Tasks" component={TasksListScreen} />
     <Stack.Screen name="Approvals" component={ManagerApprovalsScreen} />
+    <Stack.Screen name="Projects" component={ProjectsScreen} />
+    <Stack.Screen name="ProjectDetail" component={ProjectDetailScreen} />
+    <Stack.Screen name="Team" component={TeamScreen} />
+    <Stack.Screen name="EmployeeWorkflow" component={EmployeeWorkflowScreen} />
+    <Stack.Screen name="AIInsights" component={AIInsightsScreen} />
+    <Stack.Screen name="Escalations" component={EscalationsScreen} />
   </Stack.Navigator>
 );
 
@@ -66,10 +85,12 @@ const EmployeeTabs = () => (
       tabBarInactiveTintColor: colors.textSecondary,
       tabBarStyle: {
         backgroundColor: colors.cardBg,
-        borderTopColor: colors.border,
-        height: 60,
-        paddingBottom: 8,
-        paddingTop: 8,
+        borderTopWidth: 0,
+        height: Platform.OS === 'ios' ? 88 : 72,
+        paddingBottom: Platform.OS === 'ios' ? 28 : 16,
+        paddingTop: 10,
+        elevation: 0,
+        shadowOpacity: 0,
       },
       tabBarLabelStyle: {
         fontSize: 10,
@@ -101,10 +122,12 @@ const AdminTabs = () => (
       tabBarInactiveTintColor: colors.textSecondary,
       tabBarStyle: {
         backgroundColor: colors.cardBg,
-        borderTopColor: colors.border,
-        height: 60,
-        paddingBottom: 8,
-        paddingTop: 8,
+        borderTopWidth: 0,
+        height: Platform.OS === 'ios' ? 80 : 70,
+        paddingBottom: Platform.OS === 'ios' ? 30 : 18,
+        paddingTop: 12,
+        elevation: 0,
+        shadowOpacity: 0,
       },
       tabBarLabelStyle: {
         fontSize: 10,
@@ -138,31 +161,36 @@ const AppContent = () => {
   const isAdmin = user?.role === 'HR' || user?.role === 'Founding Team';
 
   return (
-    <NavigationContainer theme={{
-      dark: true,
-      colors: {
-        background: colors.background,
-        card: colors.cardBg,
-        text: colors.text,
-        border: colors.border,
-        primary: colors.primary,
-        notification: colors.accent,
-      }
-    }}>
-      <StatusBar barStyle="light-content" backgroundColor={colors.background} />
-      {isAuthenticated ? (
-        isAdmin ? <AdminTabs /> : <EmployeeTabs />
-      ) : (
-        <AuthStack />
-      )}
-    </NavigationContainer>
+    <>
+      <SafeAreaView style={{ flex: 0, backgroundColor: '#FFFFFF' }} />
+      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+      <NavigationContainer theme={{
+        dark: true,
+        colors: {
+          background: '#FFFFFF',
+          card: colors.cardBg,
+          text: colors.text,
+          border: colors.border,
+          primary: colors.primary,
+          notification: colors.accent,
+        }
+      }}>
+        {isAuthenticated ? (
+          isAdmin ? <AdminTabs /> : <EmployeeTabs />
+        ) : (
+          <AuthStack />
+        )}
+      </NavigationContainer>
+    </>
   );
 };
 
 export default function App() {
   return (
-    <AuthProvider>
-      <AppContent />
-    </AuthProvider>
+    <SafeAreaProvider>
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
+    </SafeAreaProvider>
   );
 }

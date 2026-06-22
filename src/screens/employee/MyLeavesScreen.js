@@ -7,8 +7,11 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Modal,
-  Alert
+  Alert,
+  KeyboardAvoidingView,
+  Platform
 } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, typography } from '../../theme/colors';
 import api from '../../services/api';
@@ -26,6 +29,7 @@ const LEAVE_TYPES = [
 ];
 
 const MyLeavesScreen = () => {
+  const insets = useSafeAreaInsets();
   const { user } = useAuth();
   const [leaves, setLeaves] = useState([]);
   const [balance, setBalance] = useState(null);
@@ -105,7 +109,7 @@ const MyLeavesScreen = () => {
   const totalDays = calculateDays(startDate, endDate);
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.header}>
           <View>
@@ -168,10 +172,14 @@ const MyLeavesScreen = () => {
       </ScrollView>
 
       {/* Apply Leave Modal */}
-      <Modal visible={showApplyModal} transparent animationType="slide">
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <ScrollView>
+      <Modal visible={showApplyModal} transparent animationType="slide" statusBarTranslucent>
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={[styles.modalContent, { paddingBottom: Math.max(insets.bottom, 16) + 20 }]}>
+              <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
               <View style={styles.modalHeader}>
                 <Text style={styles.modalTitle}>Request Leave / WFH</Text>
                 <TouchableOpacity onPress={() => setShowApplyModal(false)}>
@@ -239,11 +247,12 @@ const MyLeavesScreen = () => {
                 loading={submitting}
                 variant="primary"
               />
-            </ScrollView>
+              </ScrollView>
+            </View>
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
-    </View>
+    </SafeAreaView>
   );
 };
 
@@ -260,7 +269,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingVertical: 12,
-    marginTop: 40,
+    marginTop: 0,
   },
   title: {
     color: colors.text,
@@ -362,10 +371,10 @@ const styles = StyleSheet.create({
   },
   modalContent: {
     backgroundColor: colors.cardBg,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
     padding: 20,
-    maxHeight: '85%',
+    maxHeight: '90%',
   },
   modalHeader: {
     flexDirection: 'row',

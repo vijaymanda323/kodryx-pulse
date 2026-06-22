@@ -10,8 +10,10 @@ import {
   Modal,
   Alert,
   TextInput,
-  Platform
+  Platform,
+  KeyboardAvoidingView
 } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, typography } from '../../theme/colors';
 import api from '../../services/api';
@@ -21,6 +23,7 @@ import InputField from '../../components/InputField';
 import Badge from '../../components/Badge';
 
 const DailyStatusEntryScreen = () => {
+  const insets = useSafeAreaInsets();
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [savingPlan, setSavingPlan] = useState(false);
@@ -220,10 +223,10 @@ const DailyStatusEntryScreen = () => {
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
+      <SafeAreaView style={styles.loadingContainer}>
         <ActivityIndicator size="large" color={colors.primary} />
         <Text style={styles.loadingText}>Syncing logs...</Text>
-      </View>
+      </SafeAreaView>
     );
   }
 
@@ -231,9 +234,19 @@ const DailyStatusEntryScreen = () => {
   const totalHours = loggedTasks.reduce((s, t) => s + (t.hoursSpent || 0), 0);
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
-      {/* Header Summary */}
-      <View style={styles.header}>
+    <SafeAreaView style={styles.container}>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+      >
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+        {/* Header Summary */}
+        <View style={styles.header}>
         <View>
           <Text style={styles.title}>Daily Status Log</Text>
           <Text style={styles.subtitle}>
@@ -364,7 +377,7 @@ const DailyStatusEntryScreen = () => {
       <Text style={styles.sectionHeader}>Today's Entries ({loggedTasks.length})</Text>
       {loggedTasks.length === 0 ? (
         <Card style={styles.emptyCard}>
-          <Ionicons name="tray-outline" size={32} color={colors.textMuted} style={styles.emptyIcon} />
+          <Ionicons name="archive-outline" size={32} color={colors.textMuted} style={styles.emptyIcon} />
           <Text style={styles.emptyText}>No tasks logged yet for today.</Text>
         </Card>
       ) : (
@@ -423,29 +436,36 @@ const DailyStatusEntryScreen = () => {
           </TouchableOpacity>
         </View>
 
-        <View style={styles.planInputRow}>
+        {/* Plan Input — Project picker then task + add button */}
+        <View style={styles.planProjectRow}>
           <TouchableOpacity
-            style={[styles.dropdownSelector, { flex: 1, marginRight: 8, height: 44, marginVertical: 0 }]}
+            style={styles.planProjectSelector}
             onPress={() => {
               setActiveDropdownTarget('plan');
               setShowProjModal(true);
             }}
           >
-            <Text style={[styles.dropdownText, { fontSize: typography.sizes.sm }]} numberOfLines={1}>
-              {planProject ? planProject.name : '— Project —'}
+            <Ionicons name="folder-outline" size={14} color={colors.textSecondary} style={{ marginRight: 6 }} />
+            <Text style={[styles.dropdownText, { fontSize: typography.sizes.sm, flex: 1 }]} numberOfLines={1}>
+              {planProject ? planProject.name : '— Select Project (optional) —'}
             </Text>
+            <Ionicons name="chevron-down" size={14} color={colors.textSecondary} />
           </TouchableOpacity>
+        </View>
 
+        <View style={styles.planInputRow}>
           <TextInput
             style={styles.planInput}
             value={planTask}
             onChangeText={setPlanTask}
             placeholder="What will you do tomorrow?"
             placeholderTextColor={colors.textMuted}
+            returnKeyType="done"
+            blurOnSubmit={false}
+            onSubmitEditing={addPlanItem}
           />
-
           <TouchableOpacity style={styles.addPlanBtn} onPress={addPlanItem}>
-            <Ionicons name="add" size={24} color={colors.text} />
+            <Ionicons name="add" size={24} color="#FFFFFF" />
           </TouchableOpacity>
         </View>
 
@@ -472,52 +492,56 @@ const DailyStatusEntryScreen = () => {
       </Card>
 
       {/* Project Selector Modal */}
-      <Modal visible={showProjModal} transparent animationType="slide">
+      <Modal visible={showProjModal} transparent animationType="slide" statusBarTranslucent>
         <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
+          <View style={[styles.modalContent, { paddingBottom: Math.max(insets.bottom, 16) + 16 }]}>
+            <View style={styles.modalHandle} />
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Select Project</Text>
               <TouchableOpacity onPress={() => setShowProjModal(false)}>
                 <Ionicons name="close" size={24} color={colors.text} />
               </TouchableOpacity>
             </View>
-            <TouchableOpacity
-              style={styles.modalOption}
-              onPress={() => {
-                if (activeDropdownTarget === 'form') {
-                  setSelectedProject(null);
-                } else {
-                  setPlanProject(null);
-                }
-                setShowProjModal(false);
-              }}
-            >
-              <Text style={styles.modalOptionText}>— General / Non-Project —</Text>
-            </TouchableOpacity>
-            {projects.map(p => (
+            <ScrollView showsVerticalScrollIndicator={false}>
               <TouchableOpacity
-                key={p._id}
                 style={styles.modalOption}
                 onPress={() => {
                   if (activeDropdownTarget === 'form') {
-                    setSelectedProject(p);
+                    setSelectedProject(null);
                   } else {
-                    setPlanProject(p);
+                    setPlanProject(null);
                   }
                   setShowProjModal(false);
                 }}
               >
-                <Text style={styles.modalOptionText}>{p.name}</Text>
+                <Text style={styles.modalOptionText}>— General / Non-Project —</Text>
               </TouchableOpacity>
-            ))}
+              {projects.map(p => (
+                <TouchableOpacity
+                  key={p._id}
+                  style={styles.modalOption}
+                  onPress={() => {
+                    if (activeDropdownTarget === 'form') {
+                      setSelectedProject(p);
+                    } else {
+                      setPlanProject(p);
+                    }
+                    setShowProjModal(false);
+                  }}
+                >
+                  <Text style={styles.modalOptionText}>{p.name}</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
           </View>
         </View>
       </Modal>
 
       {/* Status Selector Modal */}
-      <Modal visible={showStatusModal} transparent animationType="slide">
+      <Modal visible={showStatusModal} transparent animationType="slide" statusBarTranslucent>
         <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
+          <View style={[styles.modalContent, { paddingBottom: Math.max(insets.bottom, 16) + 16 }]}>
+            <View style={styles.modalHandle} />
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Select Status</Text>
               <TouchableOpacity onPress={() => setShowStatusModal(false)}>
@@ -540,8 +564,9 @@ const DailyStatusEntryScreen = () => {
         </View>
       </Modal>
 
-      <View style={{ height: 40 }} />
-    </ScrollView>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 };
 
@@ -569,7 +594,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingVertical: 12,
-    marginTop: Platform.OS === 'ios' ? 40 : 10,
+    marginTop: 0,
     marginBottom: 16,
   },
   title: {
@@ -785,13 +810,27 @@ const styles = StyleSheet.create({
     fontSize: typography.sizes.xs,
     fontWeight: typography.weights.bold,
   },
+  planProjectRow: {
+    marginBottom: 10,
+  },
+  planProjectSelector: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.backgroundSecondary,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: colors.border,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
   planInputRow: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 16,
+    gap: 8,
   },
   planInput: {
-    flex: 2,
+    flex: 1,
     height: 44,
     backgroundColor: colors.cardBg,
     borderRadius: 12,
@@ -835,15 +874,24 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: 'rgba(0,0,0,0.55)',
     justifyContent: 'flex-end',
   },
   modalContent: {
     backgroundColor: colors.cardBg,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    padding: 20,
-    maxHeight: '60%',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingHorizontal: 20,
+    paddingTop: 8,
+    maxHeight: '65%',
+  },
+  modalHandle: {
+    width: 40,
+    height: 4,
+    backgroundColor: colors.border,
+    borderRadius: 2,
+    alignSelf: 'center',
+    marginBottom: 12,
   },
   modalHeader: {
     flexDirection: 'row',
