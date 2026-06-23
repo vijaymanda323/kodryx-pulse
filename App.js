@@ -162,8 +162,6 @@ const AppContent = () => {
 
   return (
     <>
-      <SafeAreaView style={{ flex: 0, backgroundColor: '#FFFFFF' }} />
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
       <NavigationContainer theme={{
         dark: true,
         colors: {

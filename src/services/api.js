@@ -17,6 +17,7 @@ api.interceptors.request.use(
     try {
       const token = await SecureStore.getItemAsync('wf_token');
       if (token) {
+        config.headers = config.headers || {};
         config.headers.Authorization = `Bearer ${token}`;
       }
     } catch (e) {

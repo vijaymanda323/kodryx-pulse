@@ -121,7 +121,8 @@ const LoginScreen = ({ route, navigation }) => {
         await login(email, password, role);
       }
     } catch (err) {
-      const errMsg = err.response?.data?.message || err.message || 'Action failed';
+      let errMsg = err.response?.data?.message || err.message || 'Action failed';
+      if (typeof errMsg !== 'string') errMsg = JSON.stringify(errMsg);
       Alert.alert('Error', errMsg);
     } finally {
       setLoading(false);

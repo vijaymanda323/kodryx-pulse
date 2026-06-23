@@ -55,13 +55,14 @@ export const AuthProvider = ({ children }) => {
       setUser(data);
       api.defaults.headers.common['Authorization'] = `Bearer ${data.token}`;
       
-      await SecureStore.setItemAsync('wf_token', data.token);
-      await SecureStore.setItemAsync('wf_user', JSON.stringify(data));
-      await SecureStore.setItemAsync('wf_last_role', data.role);
+      if (data?.token) await SecureStore.setItemAsync('wf_token', String(data.token));
+      if (data) await SecureStore.setItemAsync('wf_user', JSON.stringify(data));
+      if (data?.role) await SecureStore.setItemAsync('wf_last_role', String(data.role));
       
       return data;
     } catch (err) {
-      const errMsg = err.response?.data?.message || 'Login failed';
+      let errMsg = err.response?.data?.message || err.message || 'Login failed';
+      if (typeof errMsg !== 'string') errMsg = JSON.stringify(errMsg);
       setError(errMsg);
       throw err;
     }
@@ -73,7 +74,8 @@ export const AuthProvider = ({ children }) => {
       const { data } = await api.post('/api/auth/register', userData);
       return data;
     } catch (err) {
-      const errMsg = err.response?.data?.message || 'Registration failed';
+      let errMsg = err.response?.data?.message || err.message || 'Registration failed';
+      if (typeof errMsg !== 'string') errMsg = JSON.stringify(errMsg);
       setError(errMsg);
       throw err;
     }
