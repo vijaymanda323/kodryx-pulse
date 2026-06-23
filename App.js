@@ -1,5 +1,5 @@
 import React from 'react';
-import { StatusBar, Platform, SafeAreaView } from 'react-native';
+import { StatusBar, Platform } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -7,7 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors } from './src/theme/colors';
 
 // Context
-import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { AuthProvider } from './src/context/AuthContext';
 import useAuth from './src/hooks/useAuth';
 
@@ -86,8 +86,8 @@ const EmployeeTabs = () => (
       tabBarStyle: {
         backgroundColor: colors.cardBg,
         borderTopWidth: 0,
-        height: Platform.OS === 'ios' ? 88 : 72,
-        paddingBottom: Platform.OS === 'ios' ? 28 : 16,
+        height: Platform.OS === 'ios' ? 96 : 90,
+        paddingBottom: Platform.OS === 'ios' ? 36 : 32,
         paddingTop: 10,
         elevation: 0,
         shadowOpacity: 0,
@@ -123,8 +123,8 @@ const AdminTabs = () => (
       tabBarStyle: {
         backgroundColor: colors.cardBg,
         borderTopWidth: 0,
-        height: Platform.OS === 'ios' ? 80 : 70,
-        paddingBottom: Platform.OS === 'ios' ? 30 : 18,
+        height: Platform.OS === 'ios' ? 96 : 90,
+        paddingBottom: Platform.OS === 'ios' ? 36 : 32,
         paddingTop: 12,
         elevation: 0,
         shadowOpacity: 0,

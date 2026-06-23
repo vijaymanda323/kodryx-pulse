@@ -8,9 +8,11 @@ import {
   ActivityIndicator,
   Modal,
   Alert,
-  FlatList
+  FlatList,
+  KeyboardAvoidingView,
+  Platform
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, typography } from '../../theme/colors';
 import api from '../../services/api';
@@ -29,6 +31,7 @@ const FILTERS = [
 ];
 
 const TasksListScreen = () => {
+  const insets = useSafeAreaInsets();
   const { user } = useAuth();
   const [tasks, setTasks] = useState([]);
   const [projects, setProjects] = useState([]);
@@ -230,10 +233,14 @@ const TasksListScreen = () => {
       )}
 
       {/* Assign Task Modal */}
-      <Modal visible={showAssignModal} transparent animationType="slide">
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <ScrollView>
+      <Modal visible={showAssignModal} transparent animationType="slide" statusBarTranslucent>
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={[styles.modalContent, { paddingBottom: Math.max(insets.bottom, 16) + 20 }]}>
+              <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
               <View style={styles.modalHeader}>
                 <Text style={styles.modalTitle}>Assign New Task</Text>
                 <TouchableOpacity onPress={() => setShowAssignModal(false)}>
@@ -300,6 +307,7 @@ const TasksListScreen = () => {
             </ScrollView>
           </View>
         </View>
+        </KeyboardAvoidingView>
       </Modal>
 
       {/* Project Options Modal */}
@@ -307,27 +315,29 @@ const TasksListScreen = () => {
         <View style={styles.dropdownOverlay}>
           <View style={styles.dropdownContent}>
             <Text style={styles.dropdownTitle}>Select Project</Text>
-            <TouchableOpacity
-              style={styles.dropdownOption}
-              onPress={() => {
-                setSelectedProject(null);
-                setShowProjSelect(false);
-              }}
-            >
-              <Text style={styles.dropdownOptionText}>— General / Non-Project —</Text>
-            </TouchableOpacity>
-            {projects.map(p => (
+            <ScrollView style={{ width: '100%', marginBottom: 16, flexShrink: 1 }} showsVerticalScrollIndicator={false}>
               <TouchableOpacity
-                key={p._id}
                 style={styles.dropdownOption}
                 onPress={() => {
-                  setSelectedProject(p);
+                  setSelectedProject(null);
                   setShowProjSelect(false);
                 }}
               >
-                <Text style={styles.dropdownOptionText}>{p.name}</Text>
+                <Text style={styles.dropdownOptionText}>— General / Non-Project —</Text>
               </TouchableOpacity>
-            ))}
+              {projects.map(p => (
+                <TouchableOpacity
+                  key={p._id}
+                  style={styles.dropdownOption}
+                  onPress={() => {
+                    setSelectedProject(p);
+                    setShowProjSelect(false);
+                  }}
+                >
+                  <Text style={styles.dropdownOptionText}>{p.name}</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
             <Button title="Cancel" variant="secondary" onPress={() => setShowProjSelect(false)} />
           </View>
         </View>
@@ -338,18 +348,20 @@ const TasksListScreen = () => {
         <View style={styles.dropdownOverlay}>
           <View style={styles.dropdownContent}>
             <Text style={styles.dropdownTitle}>Select Assignee</Text>
-            {users.map(u => (
-              <TouchableOpacity
-                key={u._id}
-                style={styles.dropdownOption}
-                onPress={() => {
-                  setSelectedAssignee(u);
-                  setShowUserSelect(false);
-                }}
-              >
-                <Text style={styles.dropdownOptionText}>{u.name} ({u.role})</Text>
-              </TouchableOpacity>
-            ))}
+            <ScrollView style={{ width: '100%', marginBottom: 16, flexShrink: 1 }} showsVerticalScrollIndicator={false}>
+              {users.map(u => (
+                <TouchableOpacity
+                  key={u._id}
+                  style={styles.dropdownOption}
+                  onPress={() => {
+                    setSelectedAssignee(u);
+                    setShowUserSelect(false);
+                  }}
+                >
+                  <Text style={styles.dropdownOptionText}>{u.name} ({u.role})</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
             <Button title="Cancel" variant="secondary" onPress={() => setShowUserSelect(false)} />
           </View>
         </View>
@@ -360,18 +372,20 @@ const TasksListScreen = () => {
         <View style={styles.dropdownOverlay}>
           <View style={styles.dropdownContent}>
             <Text style={styles.dropdownTitle}>Select Priority</Text>
-            {['Low', 'Medium', 'High', 'Urgent'].map(p => (
-              <TouchableOpacity
-                key={p}
-                style={styles.dropdownOption}
-                onPress={() => {
-                  setPriority(p);
-                  setShowPrioritySelect(false);
-                }}
-              >
-                <Text style={styles.dropdownOptionText}>{p}</Text>
-              </TouchableOpacity>
-            ))}
+            <ScrollView style={{ width: '100%', marginBottom: 16, flexShrink: 1 }} showsVerticalScrollIndicator={false}>
+              {['Low', 'Medium', 'High', 'Urgent'].map(p => (
+                <TouchableOpacity
+                  key={p}
+                  style={styles.dropdownOption}
+                  onPress={() => {
+                    setPriority(p);
+                    setShowPrioritySelect(false);
+                  }}
+                >
+                  <Text style={styles.dropdownOptionText}>{p}</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
             <Button title="Cancel" variant="secondary" onPress={() => setShowPrioritySelect(false)} />
           </View>
         </View>
