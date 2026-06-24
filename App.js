@@ -1,5 +1,6 @@
 import React from 'react';
-import { StatusBar, Platform } from 'react-native';
+import { StatusBar, Platform, Alert } from 'react-native';
+import * as Updates from 'expo-updates';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -84,14 +85,13 @@ const EmployeeTabs = () => (
       tabBarActiveTintColor: colors.primary,
       tabBarInactiveTintColor: colors.textSecondary,
       tabBarStyle: {
-        backgroundColor: colors.cardBg,
-        borderTopWidth: 0,
-        height: Platform.OS === 'ios' ? 96 : 90,
-        paddingBottom: Platform.OS === 'ios' ? 36 : 32,
-        paddingTop: 10,
+        backgroundColor: colors.backgroundSecondary,
+        borderTopWidth: 1,
+        borderTopColor: colors.border,
         elevation: 0,
         shadowOpacity: 0,
       },
+
       tabBarLabelStyle: {
         fontSize: 10,
         fontWeight: '600',
@@ -121,14 +121,13 @@ const AdminTabs = () => (
       tabBarActiveTintColor: colors.primary,
       tabBarInactiveTintColor: colors.textSecondary,
       tabBarStyle: {
-        backgroundColor: colors.cardBg,
-        borderTopWidth: 0,
-        height: Platform.OS === 'ios' ? 96 : 90,
-        paddingBottom: Platform.OS === 'ios' ? 36 : 32,
-        paddingTop: 12,
+        backgroundColor: colors.backgroundSecondary,
+        borderTopWidth: 1,
+        borderTopColor: colors.border,
         elevation: 0,
         shadowOpacity: 0,
       },
+
       tabBarLabelStyle: {
         fontSize: 10,
         fontWeight: '600',
@@ -159,6 +158,40 @@ const AppContent = () => {
   }
 
   const isAdmin = user?.role === 'HR' || user?.role === 'Founding Team';
+
+  // Check for OTA updates
+  React.useEffect(() => {
+    async function checkForUpdates() {
+      if (__DEV__) return;
+      try {
+        const update = await Updates.checkForUpdateAsync();
+        if (update.isAvailable) {
+          Alert.alert(
+            'Update Available',
+            'A new version of KODRYX Pulse is available. Would you like to update now?',
+            [
+              { text: 'Later', style: 'cancel' },
+              {
+                text: 'Update',
+                onPress: async () => {
+                  try {
+                    await Updates.fetchUpdateAsync();
+                    await Updates.reloadAsync();
+                  } catch (e) {
+                    Alert.alert('Error', 'Failed to download the update. Please try again later.');
+                  }
+                }
+              }
+            ]
+          );
+        }
+      } catch (error) {
+        console.log('Error checking for updates:', error);
+      }
+    }
+    
+    checkForUpdates();
+  }, []);
 
   return (
     <>

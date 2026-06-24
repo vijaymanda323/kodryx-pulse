@@ -8,6 +8,7 @@ import {
   Alert
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, typography } from '../../theme/colors';
 import useAuth from '../../hooks/useAuth';
@@ -64,7 +65,8 @@ const ProfileScreen = () => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
+      <StatusBar style="dark" />
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* Profile Header Card */}
         <Card style={styles.profileHeaderCard} useGradient gradientColors={[colors.navy, colors.navyDeep]}>

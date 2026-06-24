@@ -12,6 +12,7 @@ import {
   Dimensions
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, typography } from '../../theme/colors';
 import useAuth from '../../hooks/useAuth';
@@ -95,7 +96,8 @@ const EmployeeOverviewScreen = ({ navigation }) => {
   const activeTasks = tasks.filter(t => t.status === 'In Progress' || t.status === 'Not Started').slice(0, 4);
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
+      <StatusBar style="dark" />
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}

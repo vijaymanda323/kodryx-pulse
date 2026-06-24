@@ -21,6 +21,10 @@
         "backgroundColor": "#FFFFFF"
       }
     },
+    "androidNavigationBar": {
+      "barStyle": "dark-content",
+      "backgroundColor": "#EBEEF3"
+    },
     "plugins": [
       "expo-secure-store"
     ],
@@ -28,6 +32,12 @@
       "eas": {
         "projectId": "97fd255b-e447-4513-bab3-be35eb46e3ef"
       }
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/97fd255b-e447-4513-bab3-be35eb46e3ef"
     }
   }
 }

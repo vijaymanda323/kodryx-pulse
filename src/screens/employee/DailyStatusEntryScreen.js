@@ -14,6 +14,7 @@ import {
   KeyboardAvoidingView
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, typography } from '../../theme/colors';
 import api from '../../services/api';
@@ -234,7 +235,8 @@ const DailyStatusEntryScreen = () => {
   const totalHours = loggedTasks.reduce((s, t) => s + (t.hoursSpent || 0), 0);
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
+      <StatusBar style="dark" />
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
