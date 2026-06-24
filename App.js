@@ -1,6 +1,5 @@
 import React from 'react';
 import { StatusBar, Platform, Alert } from 'react-native';
-import * as Updates from 'expo-updates';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -160,7 +159,7 @@ const AppContent = () => {
   const isAdmin = user?.role === 'HR' || user?.role === 'Founding Team';
 
   // Check for OTA updates
-  React.useEffect(() => {
+  /* React.useEffect(() => {
     async function checkForUpdates() {
       if (__DEV__) return;
       try {
@@ -191,7 +190,7 @@ const AppContent = () => {
     }
     
     checkForUpdates();
-  }, []);
+  }, []); */
 
   return (
     <>
