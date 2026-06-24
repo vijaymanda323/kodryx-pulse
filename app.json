@@ -12,7 +12,8 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.kodryx.pulse"
     },
     "android": {
       "package": "com.kodryx.pulse",
@@ -26,7 +27,8 @@
       "backgroundColor": "#EBEEF3"
     },
     "plugins": [
-      "expo-secure-store"
+      "expo-secure-store",
+      "expo-font"
     ],
     "extra": {
       "eas": {
